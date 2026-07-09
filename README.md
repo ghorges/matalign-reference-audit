@@ -20,7 +20,6 @@ CHECKSUMS.sha256
 Python `3.11` is required. The package is managed with `uv`.
 
 ```powershell
-cd code
 uv sync
 ```
 
