@@ -9,7 +9,7 @@ import pandas as pd
 from mp_api.client import MPRester
 
 
-WORK_DIR = Path("vasp_v3_pbe_work")
+WORK_DIR = Path("vasp_uniform_pbe_work")
 
 
 def parse_args() -> argparse.Namespace:

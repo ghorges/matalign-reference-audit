@@ -7,10 +7,10 @@ import pandas as pd
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-PHASE_F = DATA_ROOT / "processed" / "phase_F_nc_upgrade"
-WP4 = DATA_ROOT / "processed" / "phase_F_wp4_tier100"
-OUT_DIR = DATA_ROOT / "processed" / "phase_F_supplement_checks"
-DOC = Path("docs/phase_F_required_supplement_numbers_20260614.md")
+PHASE_F = DATA_ROOT / "processed" / "distance_response_discovery"
+WP4 = DATA_ROOT / "processed" / "three_reference_dft_tier100"
+OUT_DIR = DATA_ROOT / "processed" / "supplementary_robustness_checks"
+DOC = Path("docs/required_supplement_numbers_20260614.md")
 
 MODEL_MAP_WBM = {
     "chgnet": "chgnet-0.3.0",
@@ -30,7 +30,7 @@ def fmt(value: float, digits: int = 4) -> str:
 
 
 def wp2_jaccard() -> tuple[pd.DataFrame, dict]:
-    df = pd.read_csv(PHASE_F / "phaseF_wp2_discovery_overlap.csv")
+    df = pd.read_csv(PHASE_F / "discovery_overlap_jaccard.csv")
     mag = df[df["segment"] == "magnetic_3d_hard"].copy()
     mag["pair"] = mag["model_a"] + " vs " + mag["model_b"]
     mag["is_orb_sevennet"] = (
@@ -68,7 +68,7 @@ def wp2_jaccard() -> tuple[pd.DataFrame, dict]:
 
 
 def wp2_error_bins() -> tuple[pd.DataFrame, pd.DataFrame]:
-    df = pd.read_csv(PHASE_F / "phaseF_wp2_disagreement_error_bins.csv")
+    df = pd.read_csv(PHASE_F / "disagreement_error_bins.csv")
     rows = []
     for segment, group in df.groupby("segment"):
         q1 = group[group["disagreement_bin"] == "q1_low"]
@@ -90,7 +90,7 @@ def wp2_error_bins() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def wp4_bucket_direction() -> tuple[pd.DataFrame, dict]:
-    df = pd.read_csv(WP4 / "wp4_bucket_segment_summary.csv")
+    df = pd.read_csv(WP4 / "bucket_segment_summary.csv")
     ref_cols = {
         "centered_median_model_abs_error_to_mp_pbe": "mp_pbe",
         "centered_median_model_abs_error_to_pbe_variant": "pbe_variant",
@@ -141,7 +141,7 @@ def pooled_pair_stats_from_wbm(df: pd.DataFrame, label: str) -> dict:
 
 def standard_ood_sensitivity() -> pd.DataFrame:
     wbm = pd.read_parquet(
-        DATA_ROOT / "processed" / "v3_wbm_validation" / "wbm_e1_clean_metal_materials.parquet",
+        DATA_ROOT / "processed" / "wbm_heldout_validation" / "wbm_e1_clean_metal_materials.parquet",
         columns=[
             "material_id",
             "has_magnetic_3d_hard",
@@ -155,7 +155,7 @@ def standard_ood_sensitivity() -> pd.DataFrame:
         pooled_pair_stats_from_wbm(wbm[wbm["has_magnetic_3d_hard"].astype(bool)].copy(), "WBM magnetic-3d-hard, standard OOD models"),
     ]
 
-    insample = pd.read_csv(DATA_ROOT / "processed" / "v3_analysis_d3" / "model_pairwise_consistency.csv")
+    insample = pd.read_csv(DATA_ROOT / "processed" / "pairwise_consistency_checks" / "model_pairwise_consistency.csv")
     pair_names = {f"{MODEL_MAP_INSAMPLE[a]}__{MODEL_MAP_INSAMPLE[b]}" for a, b in STANDARD_PAIRS}
     clean = insample[insample["pair"].isin(pair_names)].copy()
     per_mat = clean.groupby("pbe_job_id")["abs_diff_eV_atom"].median()
@@ -175,7 +175,7 @@ def standard_ood_sensitivity() -> pd.DataFrame:
 
 def wp1_standard_distance_bins() -> pd.DataFrame:
     wbm = pd.read_parquet(
-        DATA_ROOT / "processed" / "v3_wbm_validation" / "wbm_e1_clean_metal_materials.parquet",
+        DATA_ROOT / "processed" / "wbm_heldout_validation" / "wbm_e1_clean_metal_materials.parquet",
         columns=[
             "material_id",
             "chgnet-0.3.0",
@@ -184,7 +184,7 @@ def wp1_standard_distance_bins() -> pd.DataFrame:
         ],
     )
     distance = pd.read_csv(
-        PHASE_F / "phaseF_wp1_distance_response.csv",
+        PHASE_F / "distance_response_by_material.csv",
         usecols=["material_id", "distance_bin", "composition_distance", "nearest_type"],
     )
     merged = distance.merge(wbm, on="material_id", how="inner")
@@ -305,11 +305,11 @@ def write_md(
         "",
         "## Output Tables",
         "",
-        "- `phaseF_required_wp2_magnetic_jaccard.csv`",
-        "- `phaseF_required_wp2_error_ratio_by_segment.csv`",
-        "- `phaseF_required_wp4_bucket_direction.csv`",
-        "- `phaseF_required_standard_ood_sensitivity.csv`",
-        "- `phaseF_required_wp1_standard_distance_bins.csv`",
+        "- `magnetic_discovery_jaccard.csv`",
+        "- `disagreement_error_ratio_by_segment.csv`",
+        "- `three_reference_bucket_direction.csv`",
+        "- `standard_ood_sensitivity.csv`",
+        "- `standard_distance_bins.csv`",
     ]
     DOC.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
@@ -322,11 +322,11 @@ def main() -> None:
     sensitivity = standard_ood_sensitivity()
     wp1_distance = wp1_standard_distance_bins()
 
-    jaccard.to_csv(OUT_DIR / "phaseF_required_wp2_magnetic_jaccard.csv", index=False)
-    error_summary.to_csv(OUT_DIR / "phaseF_required_wp2_error_ratio_by_segment.csv", index=False)
-    wp4.to_csv(OUT_DIR / "phaseF_required_wp4_bucket_direction.csv", index=False)
-    sensitivity.to_csv(OUT_DIR / "phaseF_required_standard_ood_sensitivity.csv", index=False)
-    wp1_distance.to_csv(OUT_DIR / "phaseF_required_wp1_standard_distance_bins.csv", index=False)
+    jaccard.to_csv(OUT_DIR / "magnetic_discovery_jaccard.csv", index=False)
+    error_summary.to_csv(OUT_DIR / "disagreement_error_ratio_by_segment.csv", index=False)
+    wp4.to_csv(OUT_DIR / "three_reference_bucket_direction.csv", index=False)
+    sensitivity.to_csv(OUT_DIR / "standard_ood_sensitivity.csv", index=False)
+    wp1_distance.to_csv(OUT_DIR / "standard_distance_bins.csv", index=False)
     write_md(jaccard, jaccard_summary, error_summary, wp4, wp4_summary, sensitivity, wp1_distance)
     print(f"Wrote {DOC}")
     print(f"Wrote tables to {OUT_DIR}")

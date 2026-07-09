@@ -12,8 +12,8 @@ from scipy.stats import wilcoxon
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-D1_DIR = DATA_ROOT / "processed" / "v3_analysis"
-OUT_DIR = DATA_ROOT / "processed" / "v3_analysis_d2"
+D1_DIR = DATA_ROOT / "processed" / "clean_reference_analysis"
+OUT_DIR = DATA_ROOT / "processed" / "database_relative_model_checks"
 MODEL_OUTPUT_DIR = OUT_DIR / "model_outputs"
 CleanCols = [
     "pbe_job_id",

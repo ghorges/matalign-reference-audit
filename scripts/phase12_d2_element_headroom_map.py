@@ -12,7 +12,7 @@ from scipy.stats import wilcoxon
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-OUT_DIR = DATA_ROOT / "processed" / "v3_analysis_d2"
+OUT_DIR = DATA_ROOT / "processed" / "database_relative_model_checks"
 
 
 def parse_args() -> argparse.Namespace:
@@ -140,14 +140,14 @@ def main() -> None:
         .agg(n_elements=("element", "count"), median_element_n=("n", "median"))
         .reset_index()
     )
-    table.to_csv(args.out_dir / "element_headroom_map_d2.csv", index=False)
-    class_summary.to_csv(args.out_dir / "element_class_headroom_summary_d2.csv", index=False)
+    table.to_csv(args.out_dir / "element_headroom_map.csv", index=False)
+    class_summary.to_csv(args.out_dir / "element_class_headroom_summary.csv", index=False)
     payload = {
         "rows": int(len(table)),
         "heldout_available": bool(heldout_available),
         "models": sorted(table["model"].dropna().unique().tolist()) if not table.empty else [],
     }
-    (args.out_dir / "element_headroom_map_d2_summary.json").write_text(
+    (args.out_dir / "element_headroom_map_summary.json").write_text(
         json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
     )
     print(json.dumps(payload, indent=2, ensure_ascii=False))

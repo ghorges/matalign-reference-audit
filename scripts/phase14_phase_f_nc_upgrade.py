@@ -17,7 +17,7 @@ from scipy.stats import kendalltau, spearmanr
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-OUT_DIR = DATA_ROOT / "processed" / "phase_F_nc_upgrade"
+OUT_DIR = DATA_ROOT / "processed" / "distance_response_discovery"
 DOCS_DIR = Path("docs")
 
 FLOOR_EVA = 0.011
@@ -429,7 +429,7 @@ class TrainingCompositionIndex:
 
 
 def compute_distance_cache(clean: pd.DataFrame, train_keys: set[str], out_dir: Path) -> pd.DataFrame:
-    cache_path = out_dir / "phaseF_composition_distance_cache.parquet"
+    cache_path = out_dir / "composition_distance_cache.parquet"
     unique_keys = pd.Series(clean["composition_key"].dropna().unique(), name="composition_key")
     if cache_path.exists():
         cached = pd.read_parquet(cache_path)
@@ -486,7 +486,7 @@ def wp1_distance_response(
         *[f"{model}_abs_error_mp2020" for model in MODEL_KEYS],
     ]
     response = clean[response_cols].copy()
-    response.to_csv(out_dir / "phaseF_wp1_distance_response.csv", index=False)
+    response.to_csv(out_dir / "distance_response_by_material.csv", index=False)
 
     rows: list[dict[str, Any]] = []
     metric_cols = [
@@ -559,7 +559,7 @@ def wp1_distance_response(
                 }
             )
     summary = pd.DataFrame(rows)
-    summary.to_csv(out_dir / "phaseF_wp1_bucket_summary.csv", index=False)
+    summary.to_csv(out_dir / "distance_bucket_summary.csv", index=False)
     return response, summary
 
 
@@ -641,8 +641,8 @@ def wp2_discovery_cost(clean: pd.DataFrame, out_dir: Path) -> tuple[pd.DataFrame
 
     overlap = pd.DataFrame(overlap_rows)
     errors = pd.DataFrame(error_rows)
-    overlap.to_csv(out_dir / "phaseF_wp2_discovery_overlap.csv", index=False)
-    errors.to_csv(out_dir / "phaseF_wp2_disagreement_error_bins.csv", index=False)
+    overlap.to_csv(out_dir / "discovery_overlap_jaccard.csv", index=False)
+    errors.to_csv(out_dir / "disagreement_error_bins.csv", index=False)
     return overlap, errors
 
 
@@ -696,7 +696,7 @@ def wbm_structure_coverage(raw_path: Path, target_ids: set[str], out_dir: Path) 
     available_ids = set(data["material_id"].values())
     missing_ids = sorted(target_ids - available_ids)
     pd.DataFrame({"material_id": missing_ids}).to_csv(
-        out_dir / "phaseF_missing_wbm_init_structures.csv", index=False
+        out_dir / "missing_wbm_init_structures.csv", index=False
     )
     return {
         "target_ids": int(len(target_ids)),
@@ -802,8 +802,8 @@ def wp4_selection_manifest(
         "structure_json",
     ]
     manifest = selected[cols].copy()
-    manifest.to_csv(out_dir / "phaseF_wp4_dft_selection_manifest.csv", index=False)
-    manifest.to_parquet(out_dir / "phaseF_wp4_dft_selection_manifest.parquet", index=False)
+    manifest.to_csv(out_dir / "three_reference_dft_selection_manifest.csv", index=False)
+    manifest.to_parquet(out_dir / "three_reference_dft_selection_manifest.parquet", index=False)
     return manifest
 
 
@@ -878,12 +878,12 @@ def wp6_coverage_association(clean: pd.DataFrame, full: pd.DataFrame, key_sets: 
     else:
         table["coverage_vs_error_spearman_rho_across_models"] = math.nan
         table["coverage_vs_error_spearman_p_across_models"] = math.nan
-    table.to_csv(out_dir / "phaseF_wp6_coverage_association.csv", index=False)
+    table.to_csv(out_dir / "training_coverage_association.csv", index=False)
     return table
 
 
 def write_guidelines(out_dir: Path) -> Path:
-    path = out_dir / "phaseF_memory_probe_guidelines.md"
+    path = out_dir / "memory_probe_guidelines.md"
     text = """# Phase F Memory Probe and Evaluation Guidelines
 
 ## Memorization Probe
@@ -921,7 +921,7 @@ def write_report(
     wp4: pd.DataFrame,
     wp6: pd.DataFrame,
 ) -> Path:
-    report_path = args.docs_dir / "phase_F_nc_upgrade_results_20260610.md"
+    report_path = args.docs_dir / "distance_response_discovery_results_20260610.md"
     args.docs_dir.mkdir(parents=True, exist_ok=True)
 
     trend = wp1_summary[wp1_summary["source"] == "WBM_clean_metal_trend"].copy()
@@ -978,8 +978,8 @@ def write_report(
         "Predicted hull distances use the Matbench Discovery proxy `each_true + model_e_form - e_form_dft`. This is a discovery-list proxy, not a recomputed convex hull.",
         "",
         f"- ORB-SevenNet magnetic-3d hard stable-list Jaccard: `{homologous_jaccard:.4g}`.",
-        "- See `phaseF_wp2_discovery_overlap.csv` for all model pairs and segments.",
-        "- See `phaseF_wp2_disagreement_error_bins.csv` for disagreement-bin classification error rates.",
+        "- See `discovery_overlap_jaccard.csv` for all model pairs and segments.",
+        "- See `disagreement_error_bins.csv` for disagreement-bin classification error rates.",
         "",
         "## WP3 Full Chemistry Consistency",
         "",
@@ -1036,15 +1036,15 @@ def append_worklog(summary: dict[str, Any], report_path: Path) -> None:
 
 ### 已完成
 
-- 按 `phase_F_nc_upgrade_plan.md` 执行第一轮零 DFT 分析。
+- 按 `distance_response_discovery_plan.md` 执行第一轮零 DFT 分析。
 - 新增 Phase F 本地分析脚本，完成 WP1/WP2/WP3/WP6，并生成 WP4 DFT 选材 manifest。
 - 没有提交远端 VASP/r2SCAN 任务，没有覆盖 D3fix/E1 已冻结结果。
 
 ### 产出
 
-- Output directory: `processed/phase_F_nc_upgrade`
+- Output directory: `processed/distance_response_discovery`
 - 阶段报告：`{report_path.as_posix()}`
-- 关键表：`phaseF_wp1_distance_response.csv`、`phaseF_wp1_bucket_summary.csv`、`phaseF_wp2_discovery_overlap.csv`、`phaseF_wp2_disagreement_error_bins.csv`、`phaseF_wp3_full_chemistry_consistency.csv`、`phaseF_wp4_dft_selection_manifest.csv/parquet`、`phaseF_wp6_coverage_association.csv`。
+- 关键表：`distance_response_by_material.csv`、`distance_bucket_summary.csv`、`discovery_overlap_jaccard.csv`、`disagreement_error_bins.csv`、`full_chemistry_consistency.csv`、`three_reference_dft_selection_manifest.csv/parquet`、`training_coverage_association.csv`。
 
 ### 结果
 
@@ -1085,13 +1085,13 @@ def main() -> None:
         clean[["material_id", "composition_distance", "distance_bin"]], on="material_id", how="left"
     )
 
-    d3fix_dir = args.data_root / "processed" / "v3_analysis_d3fix"
+    d3fix_dir = args.data_root / "processed" / "leakage_controlled_consistency"
     wp1_response, wp1_summary = wp1_distance_response(
         clean, d3fix_dir, args.out_dir, rng, args.bootstrap
     )
     wp2_overlap, wp2_errors = wp2_discovery_cost(clean, args.out_dir)
     wp3 = pairwise_summary_for_frame(
-        full, "chemistry_class", args.out_dir / "phaseF_wp3_full_chemistry_consistency.csv"
+        full, "chemistry_class", args.out_dir / "full_chemistry_consistency.csv"
     )
     wp4 = wp4_selection_manifest(clean, args, args.out_dir, rng)
     wp6 = wp6_coverage_association(clean, full, key_sets, args.out_dir)
@@ -1129,7 +1129,7 @@ def main() -> None:
         else "Distance-response trend not positive; treat WP4 as optional stress test.",
         "memory_probe_guidelines": str(guideline_path),
     }
-    (args.out_dir / "phase_F_summary.json").write_text(
+    (args.out_dir / "distance_response_discovery_summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
     )
     report_path = write_report(args, summary, wp1_summary, wp2_overlap, wp2_errors, wp3, wp4, wp6)

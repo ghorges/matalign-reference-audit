@@ -13,7 +13,7 @@ from pymatgen.core import Composition
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-OUT_DIR = DATA_ROOT / "processed" / "v3_wbm_validation"
+OUT_DIR = DATA_ROOT / "processed" / "wbm_heldout_validation"
 DOCS_DIR = Path("docs")
 FLOOR_EVA = 0.011
 
@@ -410,7 +410,7 @@ def write_report(
     caveats: pd.DataFrame,
 ) -> Path:
     args.docs_dir.mkdir(parents=True, exist_ok=True)
-    path = args.docs_dir / "v3_phase_E_wbm_validation_results_20260608.md"
+    path = args.docs_dir / "wbm_heldout_validation_results_20260608.md"
     ref = summary["reference_sanity"]
     group_table = compact_group_table(grouped)
     pair_table = pairwise[

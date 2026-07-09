@@ -15,9 +15,9 @@ from scipy.stats import spearmanr
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-VALIDATION_DIR = DATA_ROOT / "processed" / "v3_pbe_validation"
-OUT_DIR = DATA_ROOT / "processed" / "v3_analysis"
-LOCAL_RESULTS_ROOT = Path("vasp_v3_pbe_work") / "remote_results" / "primary"
+VALIDATION_DIR = DATA_ROOT / "processed" / "uniform_pbe_validation"
+OUT_DIR = DATA_ROOT / "processed" / "clean_reference_analysis"
+LOCAL_RESULTS_ROOT = Path("vasp_uniform_pbe_work") / "remote_results" / "primary"
 DOCS_DIR = Path("docs")
 
 ANION_ELEMENTS = {"O", "N", "S", "Se", "Cl", "F", "Br", "I", "Te", "P", "As"}
@@ -166,7 +166,7 @@ def main() -> None:
     args.docs_dir.mkdir(parents=True, exist_ok=True)
 
     master = pd.read_csv(args.validation_dir / "pbe_primary_validation_results.csv")
-    totals = pd.read_csv(Path("vasp_v3_pbe_work") / "analysis" / "primary_full" / "pbe_total_energies.csv")
+    totals = pd.read_csv(Path("vasp_uniform_pbe_work") / "analysis" / "primary_full" / "pbe_total_energies.csv")
     totals_comp = totals[totals["task_kind"] == "compound"][["job_id", "composition_json"]].copy()
     master = master.merge(totals_comp, left_on="pbe_job_id", right_on="job_id", how="left", suffixes=("", "_composition"))
 
@@ -255,7 +255,7 @@ def main() -> None:
     clean.to_csv(args.out_dir / "clean_intermetallic_master.csv", index=False)
     clean.to_parquet(args.out_dir / "clean_intermetallic_master.parquet", index=False)
     magnetic.to_csv(args.out_dir / "magnetic_heusler_review.csv", index=False)
-    (args.out_dir / "v3_analysis_summary.json").write_text(
+    (args.out_dir / "clean_reference_analysis_summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
@@ -332,7 +332,7 @@ def main() -> None:
         "- `magnetic_heusler_review` is a review flag inside the clean universe, not a different top-level regime; this preserves the planned `n=221` keystone universe while enabling exclusion sensitivity.",
         "- MP2020 closeness to MP is treated as constructive consistency, not independent accuracy evidence.",
     ]
-    (args.docs_dir / "v3_analysis_phase_results_20260606.md").write_text(
+    (args.docs_dir / "clean_reference_analysis_results_20260606.md").write_text(
         "\n".join(report), encoding="utf-8"
     )
     print(json.dumps(summary, indent=2, ensure_ascii=False))

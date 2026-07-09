@@ -15,11 +15,11 @@ from scipy.stats import wilcoxon
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-D1_DIR = DATA_ROOT / "processed" / "v3_analysis"
-D2_DIR = DATA_ROOT / "processed" / "v3_analysis_d2"
-OUT_DIR = DATA_ROOT / "processed" / "v3_analysis_d2fix"
+D1_DIR = DATA_ROOT / "processed" / "clean_reference_analysis"
+D2_DIR = DATA_ROOT / "processed" / "database_relative_model_checks"
+OUT_DIR = DATA_ROOT / "processed" / "dual_noise_floor_checks"
 TRAINING_INDEX_DIR = DATA_ROOT / "cache" / "training_indices"
-MP_DOWNLOADS = Path("vasp_v3_pbe_work") / "mp_downloads" / "all" / "mp_summary_all.jsonl"
+MP_DOWNLOADS = Path("vasp_uniform_pbe_work") / "mp_downloads" / "all" / "mp_summary_all.jsonl"
 DOCS_DIR = Path("docs")
 MAD_SCALE = 1.4826
 DATABASES = ["MP", "OQMD", "AFLOW", "JARVIS"]
@@ -539,7 +539,7 @@ def write_report(
         f"- NMI/NCS readiness: `{summary['nmi_ncs_ready']}`.",
         f"- Reason: `{summary['go_no_go_reason']}`.",
     ]
-    (docs_dir / "v3_analysis_phase_D2fix_results_20260606.md").write_text("\n".join(report) + "\n", encoding="utf-8")
+    (docs_dir / "dual_noise_floor_checks_results_20260606.md").write_text("\n".join(report) + "\n", encoding="utf-8")
 
 
 def main() -> None:
@@ -598,7 +598,7 @@ def main() -> None:
     consensus.to_csv(args.out_dir / "consensus_distance_summary.csv", index=False)
     consensus_detail.to_csv(args.out_dir / "consensus_distance_details.csv", index=False)
     element.to_csv(args.out_dir / "element_headroom_dual_floor.csv", index=False)
-    (args.out_dir / "phase_d2fix_summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+    (args.out_dir / "dual_noise_floor_checks_summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
     write_report(args.out_dir, args.docs_dir, floor, saturation, leakage, consensus, element, summary)
     print(json.dumps(summary, indent=2, ensure_ascii=False))
 

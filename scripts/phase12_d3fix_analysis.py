@@ -30,12 +30,12 @@ except Exception:  # pragma: no cover - handled in runtime status
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-D3_DIR = DATA_ROOT / "processed" / "v3_analysis_d3"
-OUT_DIR = DATA_ROOT / "processed" / "v3_analysis_d3fix"
+D3_DIR = DATA_ROOT / "processed" / "pairwise_consistency_checks"
+OUT_DIR = DATA_ROOT / "processed" / "leakage_controlled_consistency"
 RAW_MPTRJ_DIR = DATA_ROOT / "raw" / "mptrj"
 CANDIDATE_DIR = DATA_ROOT / "cache" / "training_structure_candidates"
 DOCS_DIR = Path("docs")
-TARGET_STRUCTURE_ROOT = Path("vasp_v3_pbe_work") / "remote_results" / "primary" / "inputs" / "primary" / "compounds"
+TARGET_STRUCTURE_ROOT = Path("vasp_uniform_pbe_work") / "remote_results" / "primary" / "inputs" / "primary" / "compounds"
 
 MPTRJ_URL = "https://ndownloader.figshare.com/files/49034296"
 MPTRJ_FALLBACK_URL = "https://ndownloader.figshare.com/files/41619375"
@@ -588,13 +588,13 @@ def heldout_gate2(labels: pd.DataFrame, d3_dir: Path) -> pd.DataFrame:
 
 
 def heldout_consensus(labels: pd.DataFrame, d3_dir: Path) -> pd.DataFrame:
-    details_path = d3_dir / "d3_consensus_ambiguity_summary.csv"
-    pred = pd.read_csv(DATA_ROOT / "processed" / "v3_analysis_d2" / "frontier_model_predictions_clean.csv")
-    floor = pd.read_csv(d3_dir / "d3_pairwise_floor_table.csv")
+    details_path = d3_dir / "consensus_ambiguity_summary.csv"
+    pred = pd.read_csv(DATA_ROOT / "processed" / "database_relative_model_checks" / "frontier_model_predictions_clean.csv")
+    floor = pd.read_csv(d3_dir / "pairwise_floor_table.csv")
     heldout = set(labels[(labels["model"].isin(MACE_CHGNET)) & (labels["held_out_mptrj_strict"] == True)]["pbe_job_id"])
     if not heldout:
         return pd.DataFrame([{"subset": "mace_chgnet_mptrj_strict_heldout", "status": "underpowered_or_unavailable"}])
-    noise = pd.read_csv(DATA_ROOT / "processed" / "v3_analysis_d2fix" / "dual_noise_floors.csv")
+    noise = pd.read_csv(DATA_ROOT / "processed" / "dual_noise_floor_checks" / "dual_noise_floors.csv")
     pred = pred[(pred["model"].isin(MACE_CHGNET)) & (pred["pbe_job_id"].isin(heldout))].merge(
         noise[["pbe_job_id", "consensus_pbe3_median", "consensus_all4_median", "Ef_MP", "Ef_OQMD", "Ef_AFLOW", "Ef_JARVIS"]],
         on="pbe_job_id",
@@ -623,9 +623,9 @@ def heldout_element_map(labels: pd.DataFrame, d3_dir: Path) -> pd.DataFrame:
     heldout_jobs = set(labels[(labels["model"].isin(MACE_CHGNET)) & (labels["held_out_mptrj_strict"] == True)]["pbe_job_id"])
     if not heldout_jobs:
         return pd.DataFrame([{"status": "underpowered_or_unavailable", "n_materials": 0}])
-    element = pd.read_csv(d3_dir / "d3_element_frontier_map.csv")
-    pred = pd.read_csv(DATA_ROOT / "processed" / "v3_analysis_d2" / "frontier_model_predictions_clean.csv")
-    floor = pd.read_csv(DATA_ROOT / "processed" / "v3_analysis_d2fix" / "dual_noise_floors.csv")
+    element = pd.read_csv(d3_dir / "element_frontier_map.csv")
+    pred = pd.read_csv(DATA_ROOT / "processed" / "database_relative_model_checks" / "frontier_model_predictions_clean.csv")
+    floor = pd.read_csv(DATA_ROOT / "processed" / "dual_noise_floor_checks" / "dual_noise_floors.csv")
     # Reuse D3 element map logic on the held-out material subset, but only for CHGNet/MACE.
     pred = pred[(pred["model"].isin(MACE_CHGNET)) & (pred["pbe_job_id"].isin(heldout_jobs))].copy()
     old_frontier = d3.FRONTIER4[:]
@@ -647,7 +647,7 @@ def write_report(
     consensus: pd.DataFrame,
 ) -> Path:
     args.docs_dir.mkdir(parents=True, exist_ok=True)
-    path = args.docs_dir / "v3_analysis_phase_D3fix_results_20260606.md"
+    path = args.docs_dir / "leakage_controlled_consistency_results_20260606.md"
     def md_table(frame: pd.DataFrame) -> str:
         if frame.empty:
             return "_No rows._"
@@ -705,7 +705,7 @@ def main() -> None:
     cross.to_csv(args.out_dir / "cross_family_pairwise_consistency.csv", index=False)
     cross_summary.to_csv(args.out_dir / "cross_family_pairwise_summary.csv", index=False)
 
-    labels_d3 = pd.read_csv(args.d3_dir / "per_model_heldout_labels_d3.csv")
+    labels_d3 = pd.read_csv(args.d3_dir / "per_model_heldout_labels.csv")
     targets = load_target_keys(labels_d3)
     raw_status = ensure_mptrj(args)
     candidate_path = args.candidate_dir / "mptrj_candidates.parquet"
@@ -790,7 +790,7 @@ def main() -> None:
         "nmi_ncs_candidate": bool(cross_row["pooled_pair_median_eV_atom"] < pbe_row["pooled_pair_median_eV_atom"] and heldout_ok and heldout_gate_ok),
         "route_recommendation": "NMI_NCS_candidate" if heldout_ok and heldout_gate_ok else "npj_or_Digital_Discovery_until_MPtrj_heldout_passes",
     }
-    (args.out_dir / "d3fix_gate_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (args.out_dir / "leakage_controlled_gate_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     report = write_report(args, summary, cross_summary, match_summary, heldout_gate, consensus)
     print(json.dumps({**summary, "report_path": str(report), "output_dir": str(args.out_dir)}, indent=2))
 

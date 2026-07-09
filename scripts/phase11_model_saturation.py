@@ -12,7 +12,7 @@ from scipy.stats import wilcoxon
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-ANALYSIS_DIR = DATA_ROOT / "processed" / "v3_analysis"
+ANALYSIS_DIR = DATA_ROOT / "processed" / "clean_reference_analysis"
 DOCS_DIR = Path("docs")
 
 
@@ -195,7 +195,7 @@ def main() -> None:
         json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
-    report_path = args.docs_dir / "v3_analysis_phase_results_20260606.md"
+    report_path = args.docs_dir / "clean_reference_analysis_results_20260606.md"
     previous = report_path.read_text(encoding="utf-8") if report_path.exists() else "# MatAlign v3 Analysis Phase Results\n"
     addition = [
         "",

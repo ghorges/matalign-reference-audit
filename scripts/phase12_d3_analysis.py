@@ -21,12 +21,12 @@ except Exception:  # pragma: no cover - optional unless candidate structures exi
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-D1_DIR = DATA_ROOT / "processed" / "v3_analysis"
-D2_DIR = DATA_ROOT / "processed" / "v3_analysis_d2"
-D2FIX_DIR = DATA_ROOT / "processed" / "v3_analysis_d2fix"
-OUT_DIR = DATA_ROOT / "processed" / "v3_analysis_d3"
+D1_DIR = DATA_ROOT / "processed" / "clean_reference_analysis"
+D2_DIR = DATA_ROOT / "processed" / "database_relative_model_checks"
+D2FIX_DIR = DATA_ROOT / "processed" / "dual_noise_floor_checks"
+OUT_DIR = DATA_ROOT / "processed" / "pairwise_consistency_checks"
 DOCS_DIR = Path("docs")
-TARGET_STRUCTURE_ROOT = Path("vasp_v3_pbe_work") / "remote_results" / "primary" / "inputs" / "primary" / "compounds"
+TARGET_STRUCTURE_ROOT = Path("vasp_uniform_pbe_work") / "remote_results" / "primary" / "inputs" / "primary" / "compounds"
 CANDIDATE_STRUCTURE_DIR = DATA_ROOT / "cache" / "training_structure_candidates"
 
 MODELS = ["chgnet", "mace", "mattersim_5m", "orb_v3", "sevennet_mf_ompa"]
@@ -104,7 +104,7 @@ def load_inputs(args: argparse.Namespace) -> dict[str, pd.DataFrame]:
     floor = pd.read_csv(args.d2fix_dir / "dual_noise_floors.csv")
     leakage = pd.read_csv(args.d2fix_dir / "training_leakage_per_model.csv")
     clean = pd.read_csv(args.d1_dir / "clean_intermetallic_master.csv")
-    d2fix_summary = pd.read_json(args.d2fix_dir / "phase_d2fix_summary.json", typ="series")
+    d2fix_summary = pd.read_json(args.d2fix_dir / "dual_noise_floor_checks_summary.json", typ="series")
     return {
         "pred": pred,
         "floor": floor,
@@ -299,8 +299,8 @@ def target_structure_path(job_id: str, root: Path) -> tuple[Path | None, str]:
         (base / "static" / "CONTCAR", "static_CONTCAR"),
         (base / "static" / "POSCAR", "static_POSCAR"),
         (base / "relax" / "CONTCAR", "relax_CONTCAR"),
-        (Path("vasp_v3_pbe_work") / "inputs" / "primary" / "compounds" / job_id / "static_template" / "POSCAR", "static_template_POSCAR"),
-        (Path("vasp_v3_pbe_work") / "inputs" / "primary" / "compounds" / job_id / "relax" / "POSCAR", "input_relax_POSCAR"),
+        (Path("vasp_uniform_pbe_work") / "inputs" / "primary" / "compounds" / job_id / "static_template" / "POSCAR", "static_template_POSCAR"),
+        (Path("vasp_uniform_pbe_work") / "inputs" / "primary" / "compounds" / job_id / "relax" / "POSCAR", "input_relax_POSCAR"),
     ]
     for path, label in candidates:
         if path.exists() and path.stat().st_size > 0:
@@ -663,7 +663,7 @@ def write_report(
     element_map: pd.DataFrame,
 ) -> Path:
     args.docs_dir.mkdir(parents=True, exist_ok=True)
-    report_path = args.docs_dir / "v3_analysis_phase_D3_results_20260606.md"
+    report_path = args.docs_dir / "pairwise_consistency_checks_results_20260606.md"
     main_gate2 = gate2[gate2["comparison"] == "frontier4_excl_chgnet_vs_dft_pbe3"]
     top_reference = (
         element_map[(element_map["model"] == "frontier4_aggregate") & (element_map["d3_frontier_call"] == "reference_limited")]
@@ -811,12 +811,12 @@ def main() -> None:
     model_summary.to_csv(args.out_dir / "model_pairwise_consistency_summary.csv", index=False)
     dft_pairs.to_csv(args.out_dir / "dft_pairwise_consistency.csv", index=False)
     gate2.to_csv(args.out_dir / "gate2_consistency_tests.csv", index=False)
-    candidate_counts.to_csv(args.out_dir / "training_candidate_counts_d3.csv", index=False)
-    matches.to_csv(args.out_dir / "structure_leakage_matches_d3.csv", index=False)
-    labels.to_csv(args.out_dir / "per_model_heldout_labels_d3.csv", index=False)
-    pairwise_floor.to_csv(args.out_dir / "d3_pairwise_floor_table.csv", index=False)
-    ambiguity.to_csv(args.out_dir / "d3_consensus_ambiguity_summary.csv", index=False)
-    element_map.to_csv(args.out_dir / "d3_element_frontier_map.csv", index=False)
+    candidate_counts.to_csv(args.out_dir / "training_candidate_counts.csv", index=False)
+    matches.to_csv(args.out_dir / "structure_leakage_matches.csv", index=False)
+    labels.to_csv(args.out_dir / "per_model_heldout_labels.csv", index=False)
+    pairwise_floor.to_csv(args.out_dir / "pairwise_floor_table.csv", index=False)
+    ambiguity.to_csv(args.out_dir / "consensus_ambiguity_summary.csv", index=False)
+    element_map.to_csv(args.out_dir / "element_frontier_map.csv", index=False)
 
     frontier_summary = model_summary[model_summary["group"] == "frontier4_excl_chgnet"].iloc[0]
     all5_summary = model_summary[model_summary["group"] == "all5"].iloc[0]
@@ -848,7 +848,7 @@ def main() -> None:
         "route_recommendation": "NC/NMI_blocked_by_leakage_coverage" if not nmi_ncs_ready else "NC/NMI_candidate",
         "output_dir": str(args.out_dir),
     }
-    (args.out_dir / "d3_gate_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    (args.out_dir / "pairwise_consistency_gate_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     report_path = write_report(args, summary, model_summary, dft_summary, gate2, candidate_counts, pairwise_floor, element_map)
     print(json.dumps({**summary, "report_path": str(report_path)}, indent=2))
 

@@ -14,8 +14,8 @@ from scipy.stats import wilcoxon
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-D1_DIR = DATA_ROOT / "processed" / "v3_analysis"
-OUT_DIR = DATA_ROOT / "processed" / "v3_analysis_d2"
+D1_DIR = DATA_ROOT / "processed" / "clean_reference_analysis"
+OUT_DIR = DATA_ROOT / "processed" / "database_relative_model_checks"
 MPTRJ_CACHE = DATA_ROOT / "cache" / "mptrj_index"
 MP2022_CSE = DATA_ROOT / "raw" / "wbm" / "40344436_2023-02-07-mp-computed-structure-entries.json.gz"
 MP_ID_RE = re.compile(r"mp-[A-Za-z0-9]+")

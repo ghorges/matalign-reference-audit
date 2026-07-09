@@ -11,10 +11,10 @@ from scipy.stats import spearmanr
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-WORK_DIR = Path("vasp_v3_pbe_work")
-SELECTION_PATH = DATA_ROOT / "processed" / "v3_pbe_selection" / "pbe_validation_primary.csv"
+WORK_DIR = Path("vasp_uniform_pbe_work")
+SELECTION_PATH = DATA_ROOT / "processed" / "uniform_pbe_selection" / "pbe_validation_primary.csv"
 ANALYSIS_DIR = WORK_DIR / "analysis" / "primary_full"
-EXPORT_DIR = DATA_ROOT / "processed" / "v3_pbe_validation"
+EXPORT_DIR = DATA_ROOT / "processed" / "uniform_pbe_validation"
 DOCS_DIR = Path("docs")
 
 
@@ -255,7 +255,7 @@ def main() -> None:
 
     summary_path = args.export_dir / "pbe_primary_qc_summary.json"
     summary_path.write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
-    report_path = args.docs_dir / "v3_pbe_primary_results_20260606.md"
+    report_path = args.docs_dir / "uniform_pbe_primary_results_20260606.md"
     report_path.write_text(build_report(summary, group_tables, top_abs), encoding="utf-8")
 
     print(

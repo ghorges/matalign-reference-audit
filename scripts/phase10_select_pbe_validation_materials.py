@@ -13,7 +13,7 @@ from pymatgen.core import Composition
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-OUT_DIR = DATA_ROOT / "processed" / "v3_pbe_selection"
+OUT_DIR = DATA_ROOT / "processed" / "uniform_pbe_selection"
 
 CHEMISTRY_ORDER = ["main_group", "3d_transition", "4d_5d_transition", "f_block"]
 NOISE_ORDER = ["low", "mid", "high"]
@@ -331,8 +331,8 @@ def select_grid(candidates: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
     primary = pd.concat(selected_parts, ignore_index=True)
     backup = pd.concat(backup_parts, ignore_index=True)
-    primary.insert(0, "pbe_job_id", [f"pbe-v3-{idx:04d}" for idx in range(1, len(primary) + 1)])
-    backup.insert(0, "pbe_job_id", [f"pbe-v3-backup-{idx:04d}" for idx in range(1, len(backup) + 1)])
+    primary.insert(0, "pbe_job_id", [f"pbe-primary-{idx:04d}" for idx in range(1, len(primary) + 1)])
+    backup.insert(0, "pbe_job_id", [f"pbe-backup-{idx:04d}" for idx in range(1, len(backup) + 1)])
     return primary, backup
 
 
@@ -358,7 +358,7 @@ def choose_r2scan_subset(primary: pd.DataFrame) -> pd.DataFrame:
             parts.append(cell.head(R2SCAN_PER_CELL))
     subset = pd.concat(parts, ignore_index=True)
     subset = subset.drop_duplicates("matalign_id").copy()
-    subset.insert(1, "r2scan_job_id", [f"r2scan-v3-{idx:03d}" for idx in range(1, len(subset) + 1)])
+    subset.insert(1, "r2scan_job_id", [f"r2scan-validation-{idx:03d}" for idx in range(1, len(subset) + 1)])
     return subset
 
 
@@ -386,12 +386,12 @@ def choose_actinide_stretch_candidates(
     stretch.insert(
         0,
         "stretch_job_id",
-        [f"actinide-stretch-v3-{idx:03d}" for idx in range(1, len(stretch) + 1)],
+        [f"actinide-stretch-{idx:03d}" for idx in range(1, len(stretch) + 1)],
     )
     stretch.insert(
         1,
         "pbe_job_id",
-        [f"pbe-v3-actinide-stretch-{idx:03d}" for idx in range(1, len(stretch) + 1)],
+        [f"pbe-actinide-stretch-{idx:03d}" for idx in range(1, len(stretch) + 1)],
     )
     stretch["selection_set"] = np.where(stretch["in_primary"], "primary", "actinide_stretch")
     stretch["selection_stratum"] = stretch["chemistry_class"] + "/" + stretch["noise_bin"]

@@ -10,7 +10,7 @@ import pandas as pd
 
 
 DATA_ROOT = (Path(__file__).resolve().parents[2] / "data").resolve()
-OUT_DIR = DATA_ROOT / "processed" / "v3_analysis_d2"
+OUT_DIR = DATA_ROOT / "processed" / "database_relative_model_checks"
 DOCS_DIR = Path("docs")
 
 
@@ -79,9 +79,9 @@ def main() -> None:
     heldout = read_csv(args.out_dir / "heldout_saturation_summary.csv")
     frontier = read_csv(args.out_dir / "frontier_model_noise_floor_summary.csv")
     failures = read_csv(args.out_dir / "frontier_model_failures.csv")
-    element = read_csv(args.out_dir / "element_headroom_map_d2.csv")
-    class_summary = read_csv(args.out_dir / "element_class_headroom_summary_d2.csv")
-    mn = read_csv(args.out_dir / "mn_heusler_sensitivity_d2.csv")
+    element = read_csv(args.out_dir / "element_headroom_map.csv")
+    class_summary = read_csv(args.out_dir / "element_class_headroom_summary.csv")
+    mn = read_csv(args.out_dir / "mn_heusler_sensitivity.csv")
 
     mace_mp = metric_from_summary(db_summary, "mace", "MP")
     mace_other = {
@@ -99,7 +99,7 @@ def main() -> None:
         "mace_median_abs_error_vs_other_databases": mace_other,
         "mptrj_exact_leakage_blocked": bool(mptrj_blocked),
     }
-    (args.out_dir / "phase_d2_summary.json").write_text(
+    (args.out_dir / "database_relative_model_checks_summary.json").write_text(
         json.dumps(phase_summary, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
@@ -166,7 +166,7 @@ def main() -> None:
         "- D2.2 cannot support held-out claims unless an exact MPtrj material-id index is available; conservative MP2022 membership is reported only as an upper-bound leakage screen.",
         "- D2.3 now includes the successful frontier-model expansion, but the interpretation remains noise-floor limited rather than 'more accurate than DFT'.",
     ]
-    out_path = args.docs_dir / "v3_analysis_phase_D2_results_20260606.md"
+    out_path = args.docs_dir / "database_relative_model_checks_results_20260606.md"
     out_path.write_text("\n".join(report) + "\n", encoding="utf-8")
     print(json.dumps(phase_summary, indent=2, ensure_ascii=False))
 
