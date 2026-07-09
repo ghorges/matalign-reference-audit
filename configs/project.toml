@@ -1,0 +1,90 @@
+[project]
+name = "matalign-release"
+timezone = "Asia/Shanghai"
+
+[paths]
+data_root = "data"
+raw = "raw"
+interim = "interim"
+processed = "processed"
+tables = "tables"
+cache = "cache"
+exports = "exports"
+official_repo = "data/cache/matbench-discovery"
+raw_predictions = "raw/predictions"
+raw_wbm = "raw/wbm"
+raw_aflow = "raw/aflow"
+processed_matbench = "processed/matbench"
+processed_databases = "processed/databases"
+processed_matalign = "processed/matalign"
+processed_audit = "processed/audit"
+export_release = "exports/release"
+
+[phase0]
+prediction_article_id = 28187990
+wbm_article_id = 22715158
+matbench_repo_url = "https://github.com/janosh/matbench-discovery.git"
+matbench_repo_ref = "main"
+missing_rate_warn = 0.01
+missing_rate_drop = 0.05
+prediction_suffixes = [".csv", ".csv.gz", ".parquet"]
+reference_suffixes = [".csv", ".csv.gz", ".json", ".json.gz", ".parquet"]
+reference_target_files = [
+  "mp-computed-structure-entries.json.gz",
+  "wbm-computed-structure-entries.json.bz2",
+  "wbm-init-structs.json.bz2"
+]
+
+[analysis]
+minimum_element_test_count = 100
+stability_thresholds = [0.0, 0.05, 0.1]
+bootstrap_samples = 1000
+bootstrap_seed = 7
+max_abs_form_energy_error = 5.0
+
+[databases]
+mp_chunk_size = 1000
+oqmd_page_limit = 1000
+oqmd_stability_max = 0.5
+formation_energy_min = -5.0
+formation_energy_max = 5.0
+band_gap_min = 0.0
+volume_min = 1.0
+volume_max = 1000.0
+aflow_min_records = 200000
+aflow_page_size = 16384
+aflow_batch_pages = 4
+
+[matching]
+volume_rel_tol = 0.05
+structure_ltol = 0.2
+structure_stol = 0.3
+structure_angle_tol = 5.0
+anchor_priority = ["mp", "oqmd", "aflow", "jarvis"]
+
+[publish]
+hf_dataset_id = "matalign"
+croissant_filename = "matalign.croissant.json"
+datasheet_markdown = "docs/datasheet.md"
+
+[columns]
+material_id = ["material_id", "mat_id", "id"]
+formula = ["formula", "composition", "pretty_formula", "reduced_formula"]
+dft_ehull = [
+  "dft_ehull",
+  "e_above_hull",
+  "e_above_hull_mp2020_corrected_ppd_mp",
+  "e_above_hull_per_atom_mp2020_corrected_ppd_mp"
+]
+dft_e_form = [
+  "e_form_per_atom_mp2020_corrected",
+  "e_form_per_atom_dft",
+  "dft_e_form"
+]
+prediction = [
+  "predicted_ehull",
+  "prediction",
+  "pred",
+  "e_form_per_atom_alignn",
+  "e_above_hull_pred"
+]

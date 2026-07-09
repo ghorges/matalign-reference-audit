@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "materials-fairness-audit"
+version = "0.1.0"
+description = "MatAlign pipeline for cross-database alignment and element-wise reference auditing."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = { text = "MIT" }
+authors = [
+  { name = "MatAlign contributors" },
+]
+dependencies = [
+  "ase>=3.26.0",
+  "jarvis-tools>=2024.10.30",
+  "mp-api>=0.45.8",
+  "numpy>=2.2.0",
+  "pandas>=2.2.3",
+  "pyarrow>=19.0.0",
+  "pymatgen>=2025.1.24",
+  "pyyaml>=6.0.2",
+  "requests>=2.32.3",
+  "scikit-learn>=1.6.1",
+  "scipy>=1.15.2",
+  "statsmodels>=0.14.4",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.5",
+  "ruff>=0.11.2",
+]
+
+[project.scripts]
+mfa-env = "materials_fairness_audit.cli:env_main"
+mfa-phase0 = "materials_fairness_audit.cli:phase0_main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/materials_fairness_audit"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.uv]
+package = true

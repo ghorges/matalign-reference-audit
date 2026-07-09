@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Local data and generated outputs are released separately or regenerated.
+data/
+raw/
+interim/
+processed/
+cache/
+exports/
+tables/
+
+# Local logs and scratch files.
+*.log
+*.tmp
+*.bak
