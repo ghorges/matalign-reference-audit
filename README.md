@@ -61,7 +61,8 @@ This repository intentionally excludes:
 Run a syntax check:
 
 ```powershell
-uv run python -m py_compile (Get-ChildItem -Recurse -Filter *.py | ForEach-Object { $_.FullName })
+uv run python -m py_compile (Get-ChildItem scripts,src -Recurse -Filter *.py | ForEach-Object { $_.FullName })
 ```
 
-On non-PowerShell shells, run the equivalent `python -m py_compile` over all `.py` files.
+On non-PowerShell shells, run the equivalent `python -m py_compile` over `.py`
+files under `scripts/` and `src/`.
